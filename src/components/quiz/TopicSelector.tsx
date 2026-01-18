@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { Topic, Difficulty } from '@/types/quiz';
 import { TOPICS, DIFFICULTY_LABELS } from '@/config/topics';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Zap, Brain, Flame } from 'lucide-react';
+import { ChevronRight, Zap, Brain, Flame, ArrowLeft } from 'lucide-react';
 
 interface TopicSelectorProps {
   onStart: (topic: Topic, difficulty: Difficulty) => void;
+  onBack?: () => void;
   isLoading?: boolean;
 }
 
@@ -22,7 +23,7 @@ const difficultyColors = {
   hard: 'border-red-500/50 bg-red-500/10 text-red-400 hover:border-red-400',
 };
 
-export const TopicSelector = ({ onStart, isLoading }: TopicSelectorProps) => {
+export const TopicSelector = ({ onStart, onBack, isLoading }: TopicSelectorProps) => {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
 
@@ -34,16 +35,26 @@ export const TopicSelector = ({ onStart, isLoading }: TopicSelectorProps) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
+      {/* Back button */}
+      {onBack && (
+        <div className="fixed top-4 left-4 z-10">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
+      )}
+      
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8 sm:mb-12"
       >
         <h1 className="text-4xl sm:text-6xl font-display font-bold text-gradient mb-4">
-          Quiz Inteligente
+          Escolha seu Quiz
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground max-w-md mx-auto">
-          Teste seus conhecimentos com perguntas adaptativas geradas por IA
+          Selecione um tema e nível de dificuldade
         </p>
       </motion.div>
 
@@ -74,7 +85,7 @@ export const TopicSelector = ({ onStart, isLoading }: TopicSelectorProps) => {
                 }
               `}
             >
-              <span className="text-3xl sm:text-4xl mb-2 block">{topic.icon}</span>
+              <topic.icon className="w-8 h-8 sm:w-10 sm:h-10 mb-2" style={{ color: topic.color }} />
               <h3 className="font-display font-semibold text-sm sm:text-base mb-1">
                 {topic.name}
               </h3>

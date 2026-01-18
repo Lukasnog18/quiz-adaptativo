@@ -1,47 +1,66 @@
+import { 
+  Code, 
+  Landmark, 
+  Calculator, 
+  Globe, 
+  FlaskConical, 
+  MapPin,
+  LucideIcon 
+} from 'lucide-react';
 import { TopicInfo, Topic } from '@/types/quiz';
+
+// Map topic IDs to Lucide icons
+export const TOPIC_ICONS: Record<Topic, LucideIcon> = {
+  programming: Code,
+  history: Landmark,
+  mathematics: Calculator,
+  general_knowledge: Globe,
+  science: FlaskConical,
+  geography: MapPin,
+};
 
 export const TOPICS: TopicInfo[] = [
   {
     id: 'programming',
     name: 'Programação',
     description: 'JavaScript, Python, algoritmos e conceitos de desenvolvimento',
-    icon: '💻',
-    color: 'from-blue-500 to-cyan-500',
+    icon: Code,
+    color: '#3b82f6',
   },
   {
     id: 'history',
     name: 'História',
     description: 'Eventos históricos, civilizações e personalidades marcantes',
-    icon: '🏛️',
-    color: 'from-amber-500 to-orange-500',
+    icon: Landmark,
+    color: '#f59e0b',
   },
   {
     id: 'mathematics',
     name: 'Matemática',
     description: 'Cálculos, geometria, álgebra e lógica matemática',
-    icon: '📐',
-    color: 'from-purple-500 to-pink-500',
+    icon: Calculator,
+    color: '#a855f7',
   },
   {
     id: 'general_knowledge',
     name: 'Conhecimentos Gerais',
     description: 'Curiosidades, cultura pop, atualidades e fatos diversos',
-    icon: '🌍',
-    color: 'from-green-500 to-emerald-500',
+    icon: Globe,
+    color: '#22c55e',
   },
   {
     id: 'science',
     name: 'Ciências',
     description: 'Física, química, biologia e descobertas científicas',
-    icon: '🔬',
-    color: 'from-teal-500 to-cyan-500',
+    icon: FlaskConical,
+    color: '#14b8a6',
   },
   {
     id: 'geography',
     name: 'Geografia',
     description: 'Países, capitais, relevo e fenômenos geográficos',
-    icon: '🗺️',
-    color: 'from-rose-500 to-red-500',
+    icon: MapPin,
+    color: '#f43f5e',
   },
 ];
 

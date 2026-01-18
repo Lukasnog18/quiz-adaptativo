@@ -1,5 +1,5 @@
 // Quiz Types - Core domain types
-
+import React from 'react';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export type Topic = 
@@ -14,7 +14,7 @@ export interface TopicInfo {
   id: Topic;
   name: string;
   description: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
 }
 

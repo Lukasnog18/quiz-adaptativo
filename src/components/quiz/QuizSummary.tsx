@@ -97,7 +97,7 @@ export const QuizSummary = ({ summary, onRestart }: QuizSummaryProps) => {
             {performance.text}
           </h1>
           <p className="text-muted-foreground flex items-center justify-center gap-2">
-            <span>{topic?.icon}</span>
+            {topic && <topic.icon className="w-5 h-5" style={{ color: topic.color }} />}
             <span>{topic?.name}</span>
           </p>
         </div>
