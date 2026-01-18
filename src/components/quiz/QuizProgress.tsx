@@ -38,7 +38,7 @@ export const QuizProgress = ({ session }: QuizProgressProps) => {
           {/* Topic */}
           {topic && (
             <span className="hidden sm:flex items-center gap-1 text-muted-foreground">
-              <span>{topic.icon}</span>
+              <topic.icon className="w-4 h-4" style={{ color: topic.color }} />
               <span>{topic.name}</span>
             </span>
           )}

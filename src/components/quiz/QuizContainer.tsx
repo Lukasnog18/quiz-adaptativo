@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuiz } from '@/hooks/useQuiz';
+import { WelcomeScreen } from './WelcomeScreen';
 import { TopicSelector } from './TopicSelector';
 import { QuizProgress } from './QuizProgress';
 import { QuestionCard } from './QuestionCard';
@@ -7,7 +9,10 @@ import { QuizSummary } from './QuizSummary';
 import { LoadingQuestion } from './LoadingQuestion';
 import { ErrorState } from './ErrorState';
 
+type Screen = 'welcome' | 'topic-selector';
+
 export const QuizContainer = () => {
+  const [screen, setScreen] = useState<Screen>('welcome');
   const {
     state,
     startQuiz,
@@ -19,6 +24,15 @@ export const QuizContainer = () => {
     retryOnError,
   } = useQuiz();
 
+  const handleStartFromWelcome = () => {
+    setScreen('topic-selector');
+  };
+
+  const handleResetQuiz = () => {
+    resetQuiz();
+    setScreen('welcome');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Background gradient */}
@@ -29,15 +43,27 @@ export const QuizContainer = () => {
 
       <div className="relative z-10">
         <AnimatePresence mode="wait">
+          {/* Welcome screen */}
+          {state.status === 'idle' && screen === 'welcome' && (
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <WelcomeScreen onStart={handleStartFromWelcome} />
+            </motion.div>
+          )}
+
           {/* Topic selection screen */}
-          {state.status === 'idle' && (
+          {state.status === 'idle' && screen === 'topic-selector' && (
             <motion.div
               key="selector"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <TopicSelector onStart={startQuiz} />
+              <TopicSelector onStart={startQuiz} onBack={() => setScreen('welcome')} />
             </motion.div>
           )}
 
@@ -99,7 +125,7 @@ export const QuizContainer = () => {
               <ErrorState
                 message={state.error || 'Erro desconhecido'}
                 onRetry={state.session ? retryOnError : undefined}
-                onGoHome={resetQuiz}
+                onGoHome={handleResetQuiz}
               />
             </motion.div>
           )}
@@ -113,7 +139,7 @@ export const QuizContainer = () => {
               exit={{ opacity: 0 }}
             >
               {getSummary() && (
-                <QuizSummary summary={getSummary()!} onRestart={resetQuiz} />
+                <QuizSummary summary={getSummary()!} onRestart={handleResetQuiz} />
               )}
             </motion.div>
           )}

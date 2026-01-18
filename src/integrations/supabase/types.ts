@@ -14,7 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_answers: {
+        Row: {
+          answered_at: string
+          correct_answer: string
+          id: string
+          is_correct: boolean
+          question: string
+          selected_answer: string
+          session_id: string
+        }
+        Insert: {
+          answered_at?: string
+          correct_answer: string
+          id?: string
+          is_correct: boolean
+          question: string
+          selected_answer: string
+          session_id: string
+        }
+        Update: {
+          answered_at?: string
+          correct_answer?: string
+          id?: string
+          is_correct?: boolean
+          question?: string
+          selected_answer?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_sessions: {
+        Row: {
+          correct_answers: number
+          finished_at: string | null
+          id: string
+          initial_level: string
+          started_at: string
+          topic: string
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          correct_answers?: number
+          finished_at?: string | null
+          id?: string
+          initial_level: string
+          started_at?: string
+          topic: string
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          correct_answers?: number
+          finished_at?: string | null
+          id?: string
+          initial_level?: string
+          started_at?: string
+          topic?: string
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

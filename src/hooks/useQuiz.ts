@@ -6,18 +6,31 @@ import {
   adaptDifficulty, 
   calculateSummary 
 } from '@/services/quizService';
+import {
+  createDbSession,
+  recordAnswer,
+  updateSessionStats,
+  finishSession,
+} from '@/services/quizPersistence';
+import { useAuth } from '@/contexts/AuthContext';
 
-const INITIAL_STATE: QuizState = {
+interface ExtendedQuizState extends QuizState {
+  dbSessionId: string | null;
+}
+
+const INITIAL_STATE: ExtendedQuizState = {
   status: 'idle',
   session: null,
   currentQuestion: null,
   selectedOptionId: null,
   questionStartTime: null,
   error: null,
+  dbSessionId: null,
 };
 
 export const useQuiz = () => {
-  const [state, setState] = useState<QuizState>(INITIAL_STATE);
+  const [state, setState] = useState<ExtendedQuizState>(INITIAL_STATE);
+  const { user } = useAuth();
 
   const startQuiz = useCallback(async (topic: Topic, difficulty: Difficulty) => {
     setState((prev) => ({
@@ -29,6 +42,12 @@ export const useQuiz = () => {
     try {
       const session = createQuizSession(topic, difficulty);
       
+      // Create session in database if user is authenticated
+      let dbSessionId: string | null = null;
+      if (user) {
+        dbSessionId = await createDbSession(user.id, topic, difficulty, session.totalQuestions);
+      }
+      
       const question = await generateQuestion(topic, difficulty);
 
       setState({
@@ -38,6 +57,7 @@ export const useQuiz = () => {
         selectedOptionId: null,
         questionStartTime: Date.now(),
         error: null,
+        dbSessionId,
       });
     } catch (error) {
       setState((prev) => ({
@@ -46,7 +66,7 @@ export const useQuiz = () => {
         error: error instanceof Error ? error.message : 'Erro ao iniciar quiz',
       }));
     }
-  }, []);
+  }, [user]);
 
   const selectOption = useCallback((optionId: string) => {
     if (state.status !== 'playing') return;
@@ -74,6 +94,7 @@ export const useQuiz = () => {
 
     if (!selectedOption) return;
 
+    const correctOption = state.currentQuestion.options.find(o => o.isCorrect);
     const timeSpent = Math.round((Date.now() - state.questionStartTime) / 1000);
 
     const answer: QuestionAnswer = {
@@ -85,6 +106,25 @@ export const useQuiz = () => {
     };
 
     const updatedAnswers = [...state.session.answers, answer];
+    const correctCount = updatedAnswers.filter(a => a.isCorrect).length;
+    
+    // Record answer in database
+    if (state.dbSessionId && user) {
+      try {
+        await recordAnswer(
+          state.dbSessionId,
+          state.currentQuestion.text,
+          selectedOption.text,
+          correctOption?.text || '',
+          selectedOption.isCorrect
+        );
+        
+        // Update session stats
+        await updateSessionStats(state.dbSessionId, updatedAnswers.length, correctCount);
+      } catch (error) {
+        console.error('Failed to record answer:', error);
+      }
+    }
     
     setState((prev) => ({
       ...prev,
@@ -96,13 +136,23 @@ export const useQuiz = () => {
           }
         : null,
     }));
-  }, [state]);
+  }, [state, user]);
 
   const nextQuestion = useCallback(async () => {
     if (state.status !== 'answered' || !state.session) return;
 
     // Check if quiz is finished
     if (state.session.answers.length >= state.session.totalQuestions) {
+      // Finish session in database
+      if (state.dbSessionId && user) {
+        const correctCount = state.session.answers.filter(a => a.isCorrect).length;
+        try {
+          await finishSession(state.dbSessionId, state.session.answers.length, correctCount);
+        } catch (error) {
+          console.error('Failed to finish session:', error);
+        }
+      }
+      
       setState((prev) => ({
         ...prev,
         status: 'finished',
@@ -130,7 +180,6 @@ export const useQuiz = () => {
 
       // Get previous questions to avoid repetition
       const previousQuestions = state.session.answers.map((a) => {
-        // We'd need to store question texts, for now just pass IDs
         return a.questionId;
       });
 
@@ -161,7 +210,7 @@ export const useQuiz = () => {
         error: error instanceof Error ? error.message : 'Erro ao carregar próxima pergunta',
       }));
     }
-  }, [state]);
+  }, [state, user]);
 
   const getSummary = useCallback(() => {
     if (!state.session) return null;
@@ -174,7 +223,6 @@ export const useQuiz = () => {
 
   const retryOnError = useCallback(() => {
     if (state.session && state.status === 'error') {
-      // Retry generating a question
       setState((prev) => ({
         ...prev,
         status: 'loading',
